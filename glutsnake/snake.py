@@ -25,6 +25,10 @@ class Snake:
 
         self.init(init_len, x_blocks, y_blocks, direction)
 
+    @property
+    def len(self):
+        return len(self.sections)
+
     def set_food_pos(self, x, y):
         assert 0 <= x < self.x_blocks
         assert 0 <= y < self.y_blocks

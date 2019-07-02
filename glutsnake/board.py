@@ -22,9 +22,9 @@ class BoardManager:
         self.origin_x = origin_x
         self.origin_y = origin_y
         self.caption = caption
+        pygame.init()
 
     def init_board(self, bg_color=(0, 0, 0), caption=None):
-        pygame.init()
         pygame.display.set_caption(caption or self.caption)
         board_x, board_y = self.x_blocks * (1 + self.block_width) + \
                            2 * self.origin_x, (self.y_blocks + 1) * (self.block_width + 1) + self.origin_y
@@ -70,20 +70,29 @@ class BoardManager:
         pygame.draw.rect(self.screen, color, (pos_x, pos_y, self.block_width, self.block_width), 0)
         pygame.display.update((pos_x, pos_y, self.block_width, self.block_width))
 
-    def set_block(self, x, y, status):
-        self.blocks_status[x][y] = status
-        if status == self.NONE:
-            self.non_blocks.append((x, y))
-        else:
-            self.non_blocks.remove((x, y))
+    def set_block(self, pos, status):
+        old_status = self.blocks_status[pos[0]][pos[1]]
+        if old_status == status:
+            return
+        self.blocks_status[pos[0]][pos[1]] = status
+        if old_status == self.NONE:
+            self.non_blocks.remove(pos)
 
-    def get_status(self, x, y):
+        if status == self.NONE:
+            self.non_blocks.append(pos)
+
+    def get_status(self, pos):
+        x, y = pos[0], pos[1]
+        if x < 0 or x >= self.x_blocks or y < 0 or y > self.y_blocks:
+            return self.WALL
         return self.blocks_status[x][y]
 
-    def gen_food(self, color = ()):
+    def gen_food(self, color=(255, 0, 0)):
         index = random.randint(0, len(self.non_blocks) - 1)
         block_pos = self.non_blocks[index]
-        rect = (self.block_width * block_pos[0], self.block_width * block_pos[1],
-                self.block_width, self.block_width)
-        pygame.draw.rect(self.screen, (44, 44, 44), rect, 0)
+        pos_x = self.origin_x + block_pos[0] * (self.block_width + 1) + 1
+        pos_y = self.origin_y + block_pos[1] * (self.block_width + 1) + 1
+        rect = (pos_x, pos_y, self.block_width, self.block_width)
+        self.set_block(block_pos, self.FOOD)
+        pygame.draw.rect(self.screen, color, rect, 0)
         pygame.display.update(rect)
