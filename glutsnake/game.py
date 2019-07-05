@@ -10,6 +10,9 @@ from glutsnake.snake import Snake, KEY_DIRECTION_MAP
 
 class Game:
 
+    valid_keys = set()
+    valid_keys.update(set(KEY_DIRECTION_MAP.keys()))
+
     dir_map = {
         0: Snake.MOVE_LEFT,
         1: Snake.MOVE_DOWN,
@@ -17,13 +20,35 @@ class Game:
         3: Snake.MOVE_UP,
     }
 
-    stop_key = {ord('p'), ord('P'), ord("h"), ord('H')}
+    stop_keys = {ord('p'), ord('P'), ord("h"), ord('H'), ord("enter")}
+
+    exit_keys = {ord("q"), ord("Q"), ord("eas")}
+    valid_keys.update(stop_keys)
+    valid_keys.update(exit_keys)
+
+    direction_keys = set(KEY_DIRECTION_MAP.keys())
+
+    class EventRes:
+        none = "none"
+        quit = "quit"
+        re_loop = "re_loop"
+
+    class MoveRes:
+        none = "none"
+        move = "move"
 
     def __init__(self):
         self.bm = BoardManager(30, 30, 15, 80, 10, "贪吃蛇Python")
         self.snake = Snake(3, 30, 30, self.dir_map.get(random.randint(0, 3)))
         self.total_slice = 10
         self.direction = Snake.MOVE_UP
+        self.key_press = False
+
+    def show_speed(self):
+        pass
+
+    def show_score(self):
+        pass
 
     def init_game(self, direction):
         self.bm = BoardManager(15, 15, 15, 80, 10, "贪吃蛇Python")
@@ -66,9 +91,10 @@ class Game:
                     sys.exit()
 
                 if event.type == KEYDOWN:
-                    if event.key not in self.stop_key:
-                        continue
-                    return
+                    if event.key in self.exit_keys:
+                        sys.exit()
+                    if event.key in self.stop_keys:
+                        return
 
     # 结束画面
     def game_over_s(self):
@@ -86,7 +112,6 @@ class Game:
         pass
 
     def process_move(self, direction):
-        print("speed: >> ", self.snake.speed)
         red = (255, 0, 0)
         if direction is None:
             return self.snake.NONE
@@ -117,8 +142,55 @@ class Game:
         return self.snake.CRAWL
 
     def process_event(self):
+        move = False
+        # 先sleep一下
+
         for event in pygame.event.get():
 
+            # 退出
+            if event.type == QUIT:
+                return self.EventRes.quit
+
+            # 只接受合法的按键响应
+            if event.type not in (KEYDOWN, KEYUP) or event.key not in self.valid_keys:
+                continue
+
+            # 方向按键起来
+            if event.type == KEYUP and event.key in self.direction_keys:
+                self.key_press = False
+                continue
+
+            # 如果是退出按键
+            if event.key in self.exit_keys:
+                return self.EventRes.quit
+
+            # 暂停按键
+            if event.key in self.stop_keys:
+                self.stop()
+                return self.EventRes.re_loop
+
+            # 方向按键
+            direction = KEY_DIRECTION_MAP.get(event.key)
+            # 无效按键
+            if self.process_move(direction) == self.snake.NONE:
+                continue
+
+            # 有效按键
+            self.direction = direction
+            time.sleep(self.snake.speed / self.total_slice)
+            move = True
+            self.key_press = True
+
+        if self.key_press:
+            move = True
+            self.process_move(self.direction)
+            time.sleep(self.snake.speed / self.total_slice)
+
+        if move:
+            return self.EventRes.re_loop
+        else:
+            time.sleep(self.snake.speed / self.total_slice)
+            return self.EventRes.none
 
     def run_game(self):
         """
@@ -128,11 +200,16 @@ class Game:
         current_slice = 0
         while True:
             while current_slice < self.total_slice:
-                self.process_event()
-                current_slice += 1
-                time.sleep(self.snake.speed / self.total_slice)
-            self.process_move(self.direction)
+                es = self.process_event()
+                if es == self.EventRes.quit:
+                    sys.exit()
 
+                elif es == self.EventRes.re_loop:
+                    current_slice = 0
+                else:
+                    current_slice += 1
+
+            self.process_move(self.direction)
 
 
 if __name__ == "__main__":
