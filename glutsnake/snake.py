@@ -13,6 +13,7 @@ class Snake:
 
     def __init__(self, init_len, x_blocks, y_blocks, direction):
         self.sections = []
+        self.total_blocks = x_blocks * y_blocks
 
         self.move_funcs = {
             self.MOVE_DOWN: self.move_down,
@@ -28,6 +29,14 @@ class Snake:
     @property
     def len(self):
         return len(self.sections)
+
+    @property
+    def max_speed(self):
+        return 0.1
+
+    @property
+    def speed(self):
+        return self.total_blocks / (self.total_blocks * 4 + 6 * self.len)
 
     def set_food_pos(self, x, y):
         assert 0 <= x < self.x_blocks

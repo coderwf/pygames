@@ -64,6 +64,18 @@ class BoardManager:
 
         pygame.display.flip()
 
+    def show_wall(self, color=(255, 0, 0)):
+        start_pos_x, start_pos_y = self.origin_x, self.origin_y
+        end_pos_x, end_pos_y = self.origin_x + (self.block_width + 1) * self.x_blocks, \
+                               (self.block_width + 1) * self.y_blocks + self.origin_y
+
+        pygame.draw.line(self.screen, color, (start_pos_x, start_pos_y), (end_pos_x, start_pos_y))
+        pygame.draw.line(self.screen, color, (start_pos_x, start_pos_y), (start_pos_x, end_pos_y))
+        pygame.draw.line(self.screen, color, (end_pos_x, start_pos_y), (end_pos_x, end_pos_y))
+        pygame.draw.line(self.screen, color, (start_pos_x, end_pos_y), (end_pos_x, end_pos_y))
+        pygame.display.flip()
+
+
     def draw_block(self, x, y, color=(111, 111, 111)):
         pos_x = self.origin_x + x * (self.block_width + 1) + 1
         pos_y = self.origin_y + y * (self.block_width + 1) + 1
@@ -96,3 +108,18 @@ class BoardManager:
         self.set_block(block_pos, self.FOOD)
         pygame.draw.rect(self.screen, color, rect, 0)
         pygame.display.update(rect)
+
+    def show_score_and_speed(self):
+        pass
+
+    def show_game_over(self):
+        pass
+
+    def show_pause(self):
+        pass
+
+    def show_start(self):
+        pass
+
+
+
